@@ -143,7 +143,7 @@ class qtype_regexmatch_answer extends question_answer {
                 $index = intval($matches[0][1]);
 
                 // Regexes without the last "]]". E.g.: [[regex1]] [[regex2
-                $regularExpressions = substr($remaining, $percentOffset, $index);
+                $regularExpressions = substr($remaining, $percentOffset, $index - $percentOffset);
                 $regularExpressions = trim($regularExpressions); // Now trim all spaces at the beginning and end
                 $regularExpressions = substr($regularExpressions, 2); // remove the starting "[["
 
@@ -152,7 +152,7 @@ class qtype_regexmatch_answer extends question_answer {
                 $options = trim($options); // Now trim all spaces at the beginning and end
                 $options = substr($options, 1, strlen($options) - 2); // remove first and last "/"
 
-                $this->regexes[] = new regex($percent, $regularExpressions, $options);
+                $this->regexes[] = new qtype_regexmatch_regex($percent, $regularExpressions, $options);
 
                 // Key Value pairs or more regexes (cloze)
                 $remaining = substr($remaining, $index + strlen($matches[0][0]));
@@ -210,7 +210,7 @@ function qtype_regexmatch_str_starts_with($haysack, $needle) {
     return substr($haysack, 0, strlen($needle)) === $needle;
 }
 
-function qtype_regexmatch_construct_regex(string $regex, regex $options): string {
+function qtype_regexmatch_construct_regex(string $regex, qtype_regexmatch_regex $options): string {
     $constructedRegex = $regex;
 
     if($options->infspace)
@@ -250,11 +250,11 @@ function qtype_regexmatch_construct_regex(string $regex, regex $options): string
 
 /**
  * @param qtype_regexmatch_answer $answer
- * @param regex $regex
+ * @param qtype_regexmatch_regex $regex
  * @param string $submittedAnswer
  * @return float How correct the answer is for this regex is between 0.0 (wrong) and 1.0 (correct).
  */
-function qtype_regexmatch_try_regex(qtype_regexmatch_answer $answer, regex $regex, string $submittedAnswer) {
+function qtype_regexmatch_try_regex(qtype_regexmatch_answer $answer, qtype_regexmatch_regex $regex, string $submittedAnswer) {
     $processedAnswer = $submittedAnswer;
 
     // Trim answer if enabled.
