@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 
-const SEPARATOR_KEY = 'separator=';
-const FEEDBACK_KEY = 'feedback=';
-const SIZE_KEY = "size=";
-const POINTS_KEY = 'points=';
-const COMMENT_KEY = 'comment=';
+const QTYPE_REGEXMATCH_SEPARATOR_KEY = 'separator=';
+const QTYPE_REGEXMATCH_FEEDBACK_KEY = 'feedback=';
+const QTYPE_REGEXMATCH_SIZE_KEY = "size=";
+const QTYPE_REGEXMATCH_POINTS_KEY = 'points=';
+const QTYPE_REGEXMATCH_COMMENT_KEY = 'comment=';
 
-class regex {
+class qtype_regexmatch_regex {
     /** @var mixed Whether to use the ignore case modifier (0 = false, 1 = true). */
     public $ignorecase;
     /** @var mixed Whether to use the dot all modifier (0 = false, 1 = true). */
@@ -84,7 +84,7 @@ class regex {
 class qtype_regexmatch_answer extends question_answer {
 
     /**
-     * @var array<regex|null>
+     * @var array<qtype_regexmatch_regex|null>
      */
     public $regexes;
 
@@ -158,7 +158,7 @@ class qtype_regexmatch_answer extends question_answer {
                 $remaining = substr($remaining, $index + strlen($matches[0][0]));
                 $remaining = trim($remaining);
 
-            } while(my_str_starts_with($remaining, "%"));
+            } while(qtype_regexmatch_str_starts_with($remaining, "%"));
 
             // At last read the key value pairs
             $this->readKeyValuePairs($remaining);
@@ -173,25 +173,25 @@ class qtype_regexmatch_answer extends question_answer {
         $lines = preg_split("/\\n/", $keyValuePairs);
         $current = -1; // For multi line values
         foreach ($lines as $line) {
-            if(my_str_starts_with($line, COMMENT_KEY)) {
+            if(qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_COMMENT_KEY)) {
                 $current = 0;
                 //This can safely be ignored
 
-            } else if (my_str_starts_with($line, SEPARATOR_KEY)) {
+            } else if (qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_SEPARATOR_KEY)) {
                 $current = -1; // separator can only be a single line
-                $this->separator = substr($line, strlen(SEPARATOR_KEY));
+                $this->separator = substr($line, strlen(QTYPE_REGEXMATCH_SEPARATOR_KEY));
 
-            } else if (my_str_starts_with($line, FEEDBACK_KEY)) {
+            } else if (qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_FEEDBACK_KEY)) {
                 $current = 1;
-                $this->feedbackValue = substr($line, strlen(FEEDBACK_KEY));
+                $this->feedbackValue = substr($line, strlen(QTYPE_REGEXMATCH_FEEDBACK_KEY));
 
-            } else if (my_str_starts_with($line, POINTS_KEY)) {
+            } else if (qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_POINTS_KEY)) {
                 $current = -1; // points can only be a single line
-                $this->points = intval(substr($line, strlen(POINTS_KEY)));
+                $this->points = intval(substr($line, strlen(QTYPE_REGEXMATCH_POINTS_KEY)));
 
-            } else if (my_str_starts_with($line, SIZE_KEY)) {
+            } else if (qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_SIZE_KEY)) {
                 $current = -1; // size can only be a single line
-                $this->size = intval(substr($line, strlen(SIZE_KEY)));
+                $this->size = intval(substr($line, strlen(QTYPE_REGEXMATCH_SIZE_KEY)));
 
             } else {
                 if($current === 0) continue;
@@ -206,11 +206,11 @@ class qtype_regexmatch_answer extends question_answer {
  * @param string $needle
  * @return bool true of haysack starts with needle.
  */
-function my_str_starts_with($haysack, $needle) {
+function qtype_regexmatch_str_starts_with($haysack, $needle) {
     return substr($haysack, 0, strlen($needle)) === $needle;
 }
 
-function construct_regex(string $regex, regex $options): string {
+function qtype_regexmatch_construct_regex(string $regex, regex $options): string {
     $constructedRegex = $regex;
 
     if($options->infspace)
@@ -254,7 +254,7 @@ function construct_regex(string $regex, regex $options): string {
  * @param string $submittedAnswer
  * @return float How correct the answer is for this regex is between 0.0 (wrong) and 1.0 (correct).
  */
-function try_regex(qtype_regexmatch_answer $answer, regex $regex, string $submittedAnswer) {
+function qtype_regexmatch_try_regex(qtype_regexmatch_answer $answer, regex $regex, string $submittedAnswer) {
     $processedAnswer = $submittedAnswer;
 
     // Trim answer if enabled.
@@ -273,7 +273,7 @@ function try_regex(qtype_regexmatch_answer $answer, regex $regex, string $submit
         }
 
         foreach ($regex->regexes as $r) {
-            $r = construct_regex($r,  $regex);
+            $r = qtype_regexmatch_construct_regex($r,  $regex);
 
             $i = 0;
             for (; $i < $answerLineCount; $i++) {
@@ -302,7 +302,7 @@ function try_regex(qtype_regexmatch_answer $answer, regex $regex, string $submit
     }
 
     // Construct regex based on enabled options
-    $constructedRegex = construct_regex($regex->regexes[0],  $regex);
+    $constructedRegex = qtype_regexmatch_construct_regex($regex->regexes[0],  $regex);
 
     if(preg_match($constructedRegex, $processedAnswer) == 1) {
         return 1.0;
