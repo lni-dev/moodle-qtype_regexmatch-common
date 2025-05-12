@@ -6,7 +6,7 @@ const QTYPE_REGEXMATCH_SIZE_KEY = "size=";
 const QTYPE_REGEXMATCH_POINTS_KEY = 'points=';
 const QTYPE_REGEXMATCH_COMMENT_KEY = 'comment=';
 
-class qtype_regexmatch_regex {
+class qtype_regexmatch_common_regex {
     /** @var mixed Whether to use the ignore case modifier (0 = false, 1 = true). */
     public $ignorecase;
     /** @var mixed Whether to use the dot all modifier (0 = false, 1 = true). */
@@ -81,10 +81,10 @@ class qtype_regexmatch_regex {
     }
 }
 
-class qtype_regexmatch_answer extends question_answer {
+class qtype_regexmatch_common_answer extends question_answer {
 
     /**
-     * @var array<qtype_regexmatch_regex|null>
+     * @var array<qtype_regexmatch_common_regex|null>
      */
     public $regexes;
 
@@ -152,13 +152,13 @@ class qtype_regexmatch_answer extends question_answer {
                 $options = trim($options); // Now trim all spaces at the beginning and end
                 $options = substr($options, 1, strlen($options) - 2); // remove first and last "/"
 
-                $this->regexes[] = new qtype_regexmatch_regex($percent, $regularExpressions, $options);
+                $this->regexes[] = new qtype_regexmatch_common_regex($percent, $regularExpressions, $options);
 
                 // Key Value pairs or more regexes (cloze)
                 $remaining = substr($remaining, $index + strlen($matches[0][0]));
                 $remaining = trim($remaining);
 
-            } while(qtype_regexmatch_str_starts_with($remaining, "%"));
+            } while(qtype_regexmatch_common_str_starts_with($remaining, "%"));
 
             // At last read the key value pairs
             $this->readKeyValuePairs($remaining);
@@ -173,23 +173,23 @@ class qtype_regexmatch_answer extends question_answer {
         $lines = preg_split("/\\n/", $keyValuePairs);
         $current = -1; // For multi line values
         foreach ($lines as $line) {
-            if(qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_COMMENT_KEY)) {
+            if(qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_COMMENT_KEY)) {
                 $current = 0;
                 //This can safely be ignored
 
-            } else if (qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_SEPARATOR_KEY)) {
+            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_SEPARATOR_KEY)) {
                 $current = -1; // separator can only be a single line
                 $this->separator = substr($line, strlen(QTYPE_REGEXMATCH_SEPARATOR_KEY));
 
-            } else if (qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_FEEDBACK_KEY)) {
+            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_FEEDBACK_KEY)) {
                 $current = 1;
                 $this->feedbackValue = substr($line, strlen(QTYPE_REGEXMATCH_FEEDBACK_KEY));
 
-            } else if (qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_POINTS_KEY)) {
+            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_POINTS_KEY)) {
                 $current = -1; // points can only be a single line
                 $this->points = intval(substr($line, strlen(QTYPE_REGEXMATCH_POINTS_KEY)));
 
-            } else if (qtype_regexmatch_str_starts_with($line, QTYPE_REGEXMATCH_SIZE_KEY)) {
+            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_SIZE_KEY)) {
                 $current = -1; // size can only be a single line
                 $this->size = intval(substr($line, strlen(QTYPE_REGEXMATCH_SIZE_KEY)));
 
@@ -206,11 +206,11 @@ class qtype_regexmatch_answer extends question_answer {
  * @param string $needle
  * @return bool true of haysack starts with needle.
  */
-function qtype_regexmatch_str_starts_with($haysack, $needle) {
+function qtype_regexmatch_common_str_starts_with($haysack, $needle) {
     return substr($haysack, 0, strlen($needle)) === $needle;
 }
 
-function qtype_regexmatch_construct_regex(string $regex, qtype_regexmatch_regex $options): string {
+function qtype_regexmatch_common_construct_regex(string $regex, qtype_regexmatch_common_regex $options): string {
     $constructedRegex = $regex;
 
     if($options->infspace)
@@ -249,12 +249,12 @@ function qtype_regexmatch_construct_regex(string $regex, qtype_regexmatch_regex 
 }
 
 /**
- * @param qtype_regexmatch_answer $answer
- * @param qtype_regexmatch_regex $regex
+ * @param qtype_regexmatch_common_answer $answer
+ * @param qtype_regexmatch_common_regex $regex
  * @param string $submittedAnswer
  * @return float How correct the answer is for this regex is between 0.0 (wrong) and 1.0 (correct).
  */
-function qtype_regexmatch_try_regex(qtype_regexmatch_answer $answer, qtype_regexmatch_regex $regex, string $submittedAnswer) {
+function qtype_regexmatch_common_try_regex(qtype_regexmatch_common_answer $answer, qtype_regexmatch_common_regex $regex, string $submittedAnswer) {
     $processedAnswer = $submittedAnswer;
 
     // Trim answer if enabled.
@@ -273,7 +273,7 @@ function qtype_regexmatch_try_regex(qtype_regexmatch_answer $answer, qtype_regex
         }
 
         foreach ($regex->regexes as $r) {
-            $r = qtype_regexmatch_construct_regex($r,  $regex);
+            $r = qtype_regexmatch_common_construct_regex($r,  $regex);
 
             $i = 0;
             for (; $i < $answerLineCount; $i++) {
@@ -302,7 +302,7 @@ function qtype_regexmatch_try_regex(qtype_regexmatch_answer $answer, qtype_regex
     }
 
     // Construct regex based on enabled options
-    $constructedRegex = qtype_regexmatch_construct_regex($regex->regexes[0],  $regex);
+    $constructedRegex = qtype_regexmatch_common_construct_regex($regex->regexes[0],  $regex);
 
     if(preg_match($constructedRegex, $processedAnswer) == 1) {
         return 1.0;
