@@ -94,9 +94,9 @@ class qtype_regexmatch_common_answer extends question_answer {
     public $separator = "\n";
 
     /**
-     * @var int points. Only used by the cloze regex plugin.
+     * @var float points. Only used by the cloze regex plugin.
      */
-    public $points = 1;
+    public $points = 1.0;
 
     /**
      * @var int size of the input field. Only used by the cloze regex plugin.
@@ -187,7 +187,7 @@ class qtype_regexmatch_common_answer extends question_answer {
 
             } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_POINTS_KEY)) {
                 $current = -1; // points can only be a single line
-                $this->points = intval(substr($line, strlen(QTYPE_REGEXMATCH_POINTS_KEY)));
+                $this->points = floatval(substr($line, strlen(QTYPE_REGEXMATCH_POINTS_KEY)));
 
             } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_SIZE_KEY)) {
                 $current = -1; // size can only be a single line
