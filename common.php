@@ -187,7 +187,7 @@ class qtype_regexmatch_common_answer extends question_answer {
 
             } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_POINTS_KEY)) {
                 $current = -1; // points can only be a single line
-                $this->points = floatval(substr($line, strlen(QTYPE_REGEXMATCH_POINTS_KEY)));
+                $this->points = floatval(trim(substr($line, strlen(QTYPE_REGEXMATCH_POINTS_KEY))));
 
             } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_SIZE_KEY)) {
                 $current = -1; // size can only be a single line
