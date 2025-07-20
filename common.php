@@ -1,11 +1,20 @@
 <?php declare(strict_types=1);
 
+// This file contains common classes and constants for regexmatch and regexmatchcloze.
+
 const QTYPE_REGEXMATCH_SEPARATOR_KEY = 'separator=';
 const QTYPE_REGEXMATCH_FEEDBACK_KEY = 'feedback=';
 const QTYPE_REGEXMATCH_SIZE_KEY = "size=";
 const QTYPE_REGEXMATCH_POINTS_KEY = 'points=';
 const QTYPE_REGEXMATCH_COMMENT_KEY = 'comment=';
 
+/**
+ * Class representing a single possible solution called a regex.
+ *
+ * Usually a single regular expression (if match any order is disabled).
+ * @copyright  2024 Linus Andera (linus@linusdev.de)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class qtype_regexmatch_common_regex {
     /** @var mixed Whether to use the ignore case modifier (0 = false, 1 = true). */
     public $ignorecase;
@@ -33,7 +42,7 @@ class qtype_regexmatch_common_regex {
      */
     public $regexes;
 
-    public function __construct($percent, $regularExpressions, $options) {
+    public function __construct($percent, $regularexpressions, $options) {
         $this->ignorecase = false;
         $this->dotall = false;
         $this->pipesemispace = false;
@@ -46,13 +55,14 @@ class qtype_regexmatch_common_regex {
         $this->percent = $percent;
 
         // Now split the regexes into an array
-        $this->regexes = preg_split("/]][ \\n]*\[\[/", $regularExpressions);
+        $this->regexes = preg_split("/]][ \\n]*\[\[/", $regularexpressions);
 
         // Next read the different options
         $this->readOptions($options);
     }
 
     /**
+     * Read the options of this regex.
      * @param string $options without leading or trailing "/"
      * @return void
      */
@@ -81,6 +91,9 @@ class qtype_regexmatch_common_regex {
     }
 }
 
+/**
+ * question_answer class for regexmatch and regexmatchcloze
+ */
 class qtype_regexmatch_common_answer extends question_answer {
 
     /**
@@ -113,6 +126,11 @@ class qtype_regexmatch_common_answer extends question_answer {
         $this->parse($answer);
     }
 
+    /**
+     * Parses the regex inputted from the user when creating/editing a question.
+     * @param $unparsed string raw string from user input
+     * @return void
+     */
     private function parse($unparsed) {
 
         // Remove all \r
@@ -125,7 +143,7 @@ class qtype_regexmatch_common_answer extends question_answer {
                 if($first) {
                     $first = false;
                     $percent = 100;
-                    $percentOffset = 0;
+                    $percentoffset = 0;
 
                 } else {
 
@@ -137,22 +155,22 @@ class qtype_regexmatch_common_answer extends question_answer {
 
                     preg_match("/%[0-9]+/", $remaining, $percentMatch);
                     $percent = substr($percentMatch[0], 1);
-                    $percentOffset = strlen($percentMatch[0]);
+                    $percentoffset = strlen($percentMatch[0]);
                 }
 
                 $index = intval($matches[0][1]);
 
                 // Regexes without the last "]]". E.g.: [[regex1]] [[regex2
-                $regularExpressions = substr($remaining, $percentOffset, $index - $percentOffset);
-                $regularExpressions = trim($regularExpressions); // Now trim all spaces at the beginning and end
-                $regularExpressions = substr($regularExpressions, 2); // remove the starting "[["
+                $regular_expressions = substr($remaining, $percentoffset, $index - $percentoffset);
+                $regular_expressions = trim($regular_expressions); // Now trim all spaces at the beginning and end
+                $regular_expressions = substr($regular_expressions, 2); // remove the starting "[["
 
                 // Options E.g.: "OPTIONS"
                 $options = substr($matches[0][0], 2); // first remove the "]]" at the beginning
                 $options = trim($options); // Now trim all spaces at the beginning and end
                 $options = substr($options, 1, strlen($options) - 2); // remove first and last "/"
 
-                $this->regexes[] = new qtype_regexmatch_common_regex($percent, $regularExpressions, $options);
+                $this->regexes[] = new qtype_regexmatch_common_regex($percent, $regular_expressions, $options);
 
                 // Key Value pairs or more regexes (cloze)
                 $remaining = substr($remaining, $index + strlen($matches[0][0]));
@@ -169,8 +187,13 @@ class qtype_regexmatch_common_answer extends question_answer {
         }
     }
 
-    private function readKeyValuePairs($keyValuePairs) {
-        $lines = preg_split("/\\n/", $keyValuePairs);
+    /**
+     * Parses key value pairs.
+     * @param $keyvaluepairs
+     * @return void
+     */
+    private function readKeyValuePairs($keyvaluepairs) {
+        $lines = preg_split("/\\n/", $keyvaluepairs);
         $current = -1; // For multi line values
         foreach ($lines as $line) {
             if(qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_COMMENT_KEY)) {
@@ -202,6 +225,7 @@ class qtype_regexmatch_common_answer extends question_answer {
 }
 
 /**
+ * Checks if string starts with needle.
  * @param string $haysack
  * @param string $needle
  * @return bool true of haysack starts with needle.
@@ -210,65 +234,72 @@ function qtype_regexmatch_common_str_starts_with($haysack, $needle) {
     return substr($haysack, 0, strlen($needle)) === $needle;
 }
 
+/**
+ * Constructs a regular expression that can be used in the PCRE-functions, based on given options.
+ * @param string $regex
+ * @param qtype_regexmatch_common_regex $options
+ * @return string
+ */
 function qtype_regexmatch_common_construct_regex(string $regex, qtype_regexmatch_common_regex $options): string {
-    $constructedRegex = $regex;
+    $constructedregex = $regex;
 
     if($options->infspace)
-        $constructedRegex = str_replace(" ", "(?:[ \t]+)", $constructedRegex);
+        $constructedregex = str_replace(" ", "(?:[ \t]+)", $constructedregex);
 
     if($options->pipesemispace)
-        $constructedRegex = str_replace(
+        $constructedregex = str_replace(
             array(";", "\|"),
             array("(?:[ \t]*[;\\n][ \t]*)", "(?:[ \t]*\|[ \t]*)"),
-            $constructedRegex
+            $constructedregex
         );
 
     if($options->redictspace)
-        $constructedRegex = str_replace(
+        $constructedregex = str_replace(
             array("<", "<<", ">", ">>"),
             array("(?:[ \t]*<[ \t]*)", "(?:[ \t]*<<[ \t]*)", "(?:[ \t]*>[ \t]*)", "(?:[ \t]*>>[ \t]*)"),
-            $constructedRegex
+            $constructedregex
         );
 
     // preg_match requires a delimiter ( we use "/").
     // replace all actual occurrences of "/" in $regex->answer with an escaped version ("//").
     // Add "^(?:" at the start of the regex and ")$" at the end, to match from start to end.
     // and put the regex in a non-capturing-group, so the function of the regex does not change (eg. "^a|b$" vs "^(?:a|b)$")
-    $toEscape = array("/");
-    $escapeValue = array("\\/");
-    $constructedRegex = "/^(?:" . str_replace($toEscape, $escapeValue, $constructedRegex) . ")$/";
+    $toescape = array("/");
+    $escapevalue = array("\\/");
+    $constructedregex = "/^(?:" . str_replace($toescape, $escapevalue, $constructedregex) . ")$/";
 
     // Set Flags based on enabled options
     if($options->ignorecase)
-        $constructedRegex .= "i";
+        $constructedregex .= "i";
 
     if($options->dotall)
-        $constructedRegex .= "s";
+        $constructedregex .= "s";
 
-    return $constructedRegex;
+    return $constructedregex;
 }
 
 /**
+ * Tests if given submitted_answer matches to given regex.
  * @param qtype_regexmatch_common_answer $answer
  * @param qtype_regexmatch_common_regex $regex
- * @param string $submittedAnswer
+ * @param string $submittedanswer
  * @return float How correct the answer is for this regex is between 0.0 (wrong) and 1.0 (correct).
  */
-function qtype_regexmatch_common_try_regex(qtype_regexmatch_common_answer $answer, qtype_regexmatch_common_regex $regex, string $submittedAnswer) {
-    $processedAnswer = $submittedAnswer;
+function qtype_regexmatch_common_try_regex(qtype_regexmatch_common_answer $answer, qtype_regexmatch_common_regex $regex, string $submittedanswer) {
+    $processedanswer = $submittedanswer;
 
     // Trim answer if enabled.
     if( $regex->trimspaces)
-        $processedAnswer = trim($processedAnswer);
+        $processedanswer = trim($processedanswer);
 
     if( $regex->matchAnyOrder) {
-        $answerLines = explode($answer->separator, $processedAnswer);
-        $answerLineCount = count($answerLines);
+        $answerlines = explode($answer->separator, $processedanswer);
+        $answerlinecount = count($answerlines);
 
         // Trim all answers if enabled.
         if( $regex->trimspaces) {
-            for ($i = 0; $i < $answerLineCount; $i++) {
-                $answerLines[$i] = trim($answerLines[$i]);
+            for ($i = 0; $i < $answerlinecount; $i++) {
+                $answerlines[$i] = trim($answerlines[$i]);
             }
         }
 
@@ -276,35 +307,35 @@ function qtype_regexmatch_common_try_regex(qtype_regexmatch_common_answer $answe
             $r = qtype_regexmatch_common_construct_regex($r,  $regex);
 
             $i = 0;
-            for (; $i < $answerLineCount; $i++) {
-                if($answerLines[$i] === null)
+            for (; $i < $answerlinecount; $i++) {
+                if($answerlines[$i] === null)
                     continue;
-                if(preg_match($r, $answerLines[$i]) == 1) {
+                if(preg_match($r, $answerlines[$i]) == 1) {
                     break;
                 }
             }
 
-            if($i !== $answerLineCount) {
-                $answerLines[$i] = null;
+            if($i !== $answerlinecount) {
+                $answerlines[$i] = null;
             }
         }
 
-        $wrongAnswerCount = 0;
-        foreach ($answerLines as $answerLine) {
-            if($answerLine !== null) $wrongAnswerCount++;
+        $wronganswercount = 0;
+        foreach ($answerlines as $answerline) {
+            if($answerline !== null) $wronganswercount++;
         }
 
-        $maxPoints = count($regex->regexes);
-        $answerCountDif = $maxPoints - $answerLineCount;
-        $points = max(0, $maxPoints - abs($answerCountDif) - ($wrongAnswerCount - max(0, -$answerCountDif)));
+        $maxpoints = count($regex->regexes);
+        $answercountdif = $maxpoints - $answerlinecount;
+        $points = max(0, $maxpoints - abs($answercountdif) - ($wronganswercount - max(0, -$answercountdif)));
 
-        return (floatval($points) / floatval($maxPoints));
+        return (floatval($points) / floatval($maxpoints));
     }
 
     // Construct regex based on enabled options
-    $constructedRegex = qtype_regexmatch_common_construct_regex($regex->regexes[0],  $regex);
+    $constructedregex = qtype_regexmatch_common_construct_regex($regex->regexes[0],  $regex);
 
-    if(preg_match($constructedRegex, $processedAnswer) == 1) {
+    if(preg_match($constructedregex, $processedanswer) == 1) {
         return 1.0;
     }
 
