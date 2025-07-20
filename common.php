@@ -161,16 +161,16 @@ class qtype_regexmatch_common_answer extends question_answer {
                 $index = intval($matches[0][1]);
 
                 // Regexes without the last "]]". E.g.: [[regex1]] [[regex2
-                $regular_expressions = substr($remaining, $percentoffset, $index - $percentoffset);
-                $regular_expressions = trim($regular_expressions); // Now trim all spaces at the beginning and end
-                $regular_expressions = substr($regular_expressions, 2); // remove the starting "[["
+                $regularexpressions = substr($remaining, $percentoffset, $index - $percentoffset);
+                $regularexpressions = trim($regularexpressions); // Now trim all spaces at the beginning and end
+                $regularexpressions = substr($regularexpressions, 2); // remove the starting "[["
 
                 // Options E.g.: "OPTIONS"
                 $options = substr($matches[0][0], 2); // first remove the "]]" at the beginning
                 $options = trim($options); // Now trim all spaces at the beginning and end
                 $options = substr($options, 1, strlen($options) - 2); // remove first and last "/"
 
-                $this->regexes[] = new qtype_regexmatch_common_regex($percent, $regular_expressions, $options);
+                $this->regexes[] = new qtype_regexmatch_common_regex($percent, $regularexpressions, $options);
 
                 // Key Value pairs or more regexes (cloze)
                 $remaining = substr($remaining, $index + strlen($matches[0][0]));
