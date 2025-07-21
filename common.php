@@ -2,11 +2,11 @@
 
 // This file contains common classes and constants for regexmatch and regexmatchcloze.
 
-const QTYPE_REGEXMATCH_SEPARATOR_KEY = 'separator=';
-const QTYPE_REGEXMATCH_FEEDBACK_KEY = 'feedback=';
-const QTYPE_REGEXMATCH_SIZE_KEY = "size=";
-const QTYPE_REGEXMATCH_POINTS_KEY = 'points=';
-const QTYPE_REGEXMATCH_COMMENT_KEY = 'comment=';
+const QTYPE_REGEXMATCH_COMMON_SEPARATOR_KEY = 'separator=';
+const QTYPE_REGEXMATCH_COMMON_FEEDBACK_KEY = 'feedback=';
+const QTYPE_REGEXMATCH_COMMON_SIZE_KEY = "size=";
+const QTYPE_REGEXMATCH_COMMON_POINTS_KEY = 'points=';
+const QTYPE_REGEXMATCH_COMMON_COMMENT_KEY = 'comment=';
 
 /**
  * Class representing a single possible solution called a regex.
@@ -31,7 +31,7 @@ class qtype_regexmatch_common_regex {
     /**
      * @var boolean matches multiple regexes in any order
      */
-    public $matchAnyOrder;
+    public $matchanyorder;
 
     /**
      * @var int the rating percentage.
@@ -47,7 +47,7 @@ class qtype_regexmatch_common_regex {
         $this->dotall = false;
         $this->pipesemispace = false;
         $this->redictspace = false;
-        $this->matchAnyOrder = false;
+        $this->matchanyorder = false;
 
         // On by default
         $this->infspace = true;
@@ -58,7 +58,7 @@ class qtype_regexmatch_common_regex {
         $this->regexes = preg_split("/]][ \\n]*\[\[/", $regularexpressions);
 
         // Next read the different options
-        $this->readOptions($options);
+        $this->read_options($options);
     }
 
     /**
@@ -66,7 +66,7 @@ class qtype_regexmatch_common_regex {
      * @param string $options without leading or trailing "/"
      * @return void
      */
-    private function readOptions($options) {
+    private function read_options($options) {
         foreach (str_split($options) as $option) {
             switch ($option) {
                 // Capital letter enables the option, lower case letter disables the option.
@@ -75,7 +75,7 @@ class qtype_regexmatch_common_regex {
                 case 'D': $this->dotall = true; break;
                 case 'P': $this->pipesemispace = true; break;
                 case 'R': $this->redictspace = true; break;
-                case 'O': $this->matchAnyOrder = true; break;
+                case 'O': $this->matchanyorder = true; break;
                 case 'S': $this->infspace = true; break;
                 case 'T': $this->trimspaces = true; break;
 
@@ -83,7 +83,7 @@ class qtype_regexmatch_common_regex {
                 case 'd': $this->dotall = false; break;
                 case 'p': $this->pipesemispace = false; break;
                 case 'r': $this->redictspace = false; break;
-                case 'o': $this->matchAnyOrder = false; break;
+                case 'o': $this->matchanyorder = false; break;
                 case 's': $this->infspace = false; break;
                 case 't': $this->trimspaces = false; break;
             }
@@ -119,7 +119,7 @@ class qtype_regexmatch_common_answer extends question_answer {
     /**
      * @var string feedback specified by the FEEDBACK_KEY.
      */
-    public $feedbackValue = "";
+    public $feedbackvalue = "";
 
     public function __construct($id, $answer, $fraction, $feedback, $feedbackformat) {
         parent::__construct($id, $answer, $fraction, $feedback, $feedbackformat);
@@ -179,7 +179,7 @@ class qtype_regexmatch_common_answer extends question_answer {
             } while(qtype_regexmatch_common_str_starts_with($remaining, "%"));
 
             // At last read the key value pairs
-            $this->readKeyValuePairs($remaining);
+            $this->read_key_value_pairs($remaining);
 
         } else {
             //Invalid syntax. Maybe it is an old regex
@@ -192,29 +192,29 @@ class qtype_regexmatch_common_answer extends question_answer {
      * @param $keyvaluepairs
      * @return void
      */
-    private function readKeyValuePairs($keyvaluepairs) {
+    private function read_key_value_pairs($keyvaluepairs) {
         $lines = preg_split("/\\n/", $keyvaluepairs);
         $current = -1; // For multi line values
         foreach ($lines as $line) {
-            if(qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_COMMENT_KEY)) {
+            if(qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_COMMON_COMMENT_KEY)) {
                 $current = 0;
                 //This can safely be ignored
 
-            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_SEPARATOR_KEY)) {
+            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_COMMON_SEPARATOR_KEY)) {
                 $current = -1; // separator can only be a single line
-                $this->separator = substr($line, strlen(QTYPE_REGEXMATCH_SEPARATOR_KEY));
+                $this->separator = substr($line, strlen(QTYPE_REGEXMATCH_COMMON_SEPARATOR_KEY));
 
-            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_FEEDBACK_KEY)) {
+            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_COMMON_FEEDBACK_KEY)) {
                 $current = 1;
-                $this->feedbackValue = substr($line, strlen(QTYPE_REGEXMATCH_FEEDBACK_KEY));
+                $this->feedbackvalue = substr($line, strlen(QTYPE_REGEXMATCH_COMMON_FEEDBACK_KEY));
 
-            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_POINTS_KEY)) {
+            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_COMMON_POINTS_KEY)) {
                 $current = -1; // points can only be a single line
-                $this->points = floatval(trim(substr($line, strlen(QTYPE_REGEXMATCH_POINTS_KEY))));
+                $this->points = floatval(trim(substr($line, strlen(QTYPE_REGEXMATCH_COMMON_POINTS_KEY))));
 
-            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_SIZE_KEY)) {
+            } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_COMMON_SIZE_KEY)) {
                 $current = -1; // size can only be a single line
-                $this->size = intval(substr($line, strlen(QTYPE_REGEXMATCH_SIZE_KEY)));
+                $this->size = intval(substr($line, strlen(QTYPE_REGEXMATCH_COMMON_SIZE_KEY)));
 
             } else {
                 if($current === 0) continue;
@@ -292,7 +292,7 @@ function qtype_regexmatch_common_try_regex(qtype_regexmatch_common_answer $answe
     if( $regex->trimspaces)
         $processedanswer = trim($processedanswer);
 
-    if( $regex->matchAnyOrder) {
+    if( $regex->matchanyorder) {
         $answerlines = explode($answer->separator, $processedanswer);
         $answerlinecount = count($answerlines);
 
