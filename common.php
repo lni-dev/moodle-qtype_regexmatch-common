@@ -204,6 +204,10 @@ class qtype_regexmatch_common_answer extends question_answer {
                 $current = -1; // separator can only be a single line
                 $this->separator = substr($line, strlen(QTYPE_REGEXMATCH_COMMON_SEPARATOR_KEY));
 
+                if(qtype_regexmatch_common_str_starts_with($this->separator, '"') && qtype_regexmatch_common_str_ends_with($this->separator, '"')) {
+                    $this->separator = substr($this->separator, 1, strlen($this->separator) - 2);
+                }
+
             } else if (qtype_regexmatch_common_str_starts_with($line, QTYPE_REGEXMATCH_COMMON_FEEDBACK_KEY)) {
                 $current = 1;
                 $this->feedbackvalue = substr($line, strlen(QTYPE_REGEXMATCH_COMMON_FEEDBACK_KEY));
@@ -232,6 +236,16 @@ class qtype_regexmatch_common_answer extends question_answer {
  */
 function qtype_regexmatch_common_str_starts_with($haysack, $needle) {
     return substr($haysack, 0, strlen($needle)) === $needle;
+}
+
+/**
+ * Checks if string ends with needle.
+ * @param string $haysack
+ * @param string $needle
+ * @return bool true of haysack ends with needle.
+ */
+function qtype_regexmatch_common_str_ends_with($haysack, $needle) {
+    return substr($haysack, -strlen($needle)) === $needle;
 }
 
 /**
